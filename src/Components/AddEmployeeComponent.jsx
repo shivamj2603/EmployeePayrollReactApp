@@ -10,10 +10,34 @@ class AddEmployeeComponent extends Component {
             gender: '',
             startDate: '',
             note: '',
-            department: [],
+            department: [{
+                deptName:'HR',
+                isChecked:false
+            },
+            {
+                deptName:'Sales',
+                isChecked:false
+            },{
+                deptName:'Engineer',
+                isChecked:false
+            },{
+                deptName:'Finance',
+                isChecked:false
+            },{
+                deptName:'Others',
+                isChecked:false
+            }],
             day:'',
             month:'',
-            year:''
+            year:'',
+            error:{
+                nameError:'',
+                genderError:'',
+                departmentError:'',
+                noteError:'',
+                dateError:''
+        }
+            
             
         }
 
@@ -21,10 +45,12 @@ class AddEmployeeComponent extends Component {
         this.changeSalaryHandler = this.changeSalaryHandler.bind(this);
         this.changeGenderHandler = this.changeGenderHandler.bind(this);
         this.changeNoteHandler = this.changeNoteHandler.bind(this);
-        this.changeDepartmentHandler = this.changeDepartmentHandler.bind(this);
         this.changeDayHandler = this.changeDayHandler.bind(this);
         this.changeMonthHandler = this.changeMonthHandler.bind(this);
         this.changeYearHandler = this.changeYearHandler.bind(this);
+        this.changeDepartmentHandler = this.changeDepartmentHandler.bind(this);
+        
+
         this.saveEmployee = this.saveEmployee.bind(this);
 
     }
@@ -50,8 +76,52 @@ class AddEmployeeComponent extends Component {
         this.setState({year: event.target.value});
     }
     changeDepartmentHandler = (event) => {
-        this.state.department.push(event.target.value);
+        let index = this.state.department.findIndex(dept => dept.deptName == event.target.name)
+        let checkedDepartment = [...this.state.department]
+        checkedDepartment[index] = {...checkedDepartment[index],isChecked:!checkedDepartment[index].isChecked}
+        this.setState({department:checkedDepartment})
+       
+        // let checkedDepartment = this.state.department.filter(dept => dept.deptName !== event.target.name)
+        // let dept = {
+        //     deptName:event.target.name,
+        //     isChecked:!this.state.department.filter(dept => dept.deptName == event.target.name).isChecked
+        // }
+        // checkedDepartment.push(dept)
+        // console.log(dept)
+        // this.setState({department:dept['HR'].isChecked:!dept['HR'].isChecked})
+        // console.log(this.state.department)
     }
+           
+    // changeHRHandler = (event) => {
+    //     this.setState({...department,HR = {
+    //         deptName:'HR',
+    //         ischecked:!ischecked
+    //     }})
+    // }
+    // changeSalesHandler = (event) => {
+    //     this.setState({...department,Sales = {
+    //         deptName:'Sales',
+    //         ischecked:!ischecked
+    //     }})
+    // }
+    // changeFinanceHandler = (event) => {
+    //     this.setState({...department,Finance = {
+    //         deptName:'Finance',
+    //         ischecked:!ischecked
+    //     }})
+    // }
+    // changeEngineerHandler = (event) => {
+    //     this.setState({...department,Engineer = {
+    //         deptName:'Engineer',
+    //         ischecked:!ischecked
+    //     }})
+    // }
+    // changeOthersHandler = (event) => {
+    //     this.setState({...department,Others = {
+    //         deptName:'Others',
+    //         ischecked:!ischecked
+    //     }})
+    // }
 
     saveEmployee = (event) => {
         event.preventDefault();
@@ -60,10 +130,16 @@ class AddEmployeeComponent extends Component {
             salary: this.state.salary,
             gender: this.state.gender,
             note: this.state.note,
-            department: this.state.department,
+            department: this.state.department.filter(dept=> dept.isChecked==true).map(dept=>dept.deptName),
             startDate: this.state.day + ' ' + this.state.month + ' ' + this.state.year
         };
         console.log(JSON.stringify(employee));
+        if(employee.gender.length < 4){
+            this.setState({...this.state.error, genderError:'Gender must be selected'})
+        }
+        if(this.state.department.length == 0){
+
+        }
         EmployeeService.addEmployee(employee).then(res => {
             this.props.history.push('/');
         })
@@ -107,18 +183,24 @@ class AddEmployeeComponent extends Component {
                         </div>
                         <div class="row-content">
                             <label class="label text" htmlFor="department">Department</label>
-                            <div onChange={this.changeDepartmentHandler}>
-                                <input class="checkbox" type="checkbox" id="hr" name="department" value="HR"/>
-                                <label class="text" htmlFor="hr">HR</label>
-                                <input class="checkbox" type="checkbox" id="sales" name="department" value="Sales"/>
+                                {
+                                    this.state.department.map(dept =>
+                                        <div>
+<input class="checkbox" type="checkbox"  name={dept.deptName} checked={dept.isChecked} value={dept.deptName} onChange={this.changeDepartmentHandler}/>
+                                <label class="text" htmlFor={dept.deptName}>{dept.deptName}</label>
+                                </div>
+                                        )
+                                }
+                                
+                                {/* <input class="checkbox" type="checkbox" id="sales" name="department" value="Sales" onChange={this.changeSalesHandler}/>
                                 <label class="text" htmlFor="sales">Sales</label>
-                                <input class="checkbox" type="checkbox" id="finance" name="department" value="Finance"/>
+                                <input class="checkbox" type="checkbox" id="finance" name="department" value="Finance" onChange={this.changeFinanceHandler}/>
                                 <label class="text" htmlFor="finance">Finance</label>
-                                <input class="checkbox" type="checkbox" id="engineer" name="department" value="Engineer"/>
+                                <input class="checkbox" type="checkbox" id="engineer" name="department" value="Engineer" onChange={this.changeEngineerHandler}/>
                                 <label class="text" htmlFor="engineer">Engineer</label>
-                                <input class="checkbox" type="checkbox" id="others" name="department" value="Others"/>
-                                <label class="text" htmlFor="others">Others</label>
-                            </div>
+                                <input class="checkbox" type="checkbox" id="others" name="department" value="Others" onChange={this.changeOthersHandler}/>
+                                <label class="text" htmlFor="others">Others</label> */}
+                            
                         </div>
                         <div className="row-content">
                             <label className="label text" htmlFor="salary">Choose your salary:</label>
