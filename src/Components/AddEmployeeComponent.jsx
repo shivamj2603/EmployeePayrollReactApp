@@ -161,36 +161,70 @@ class AddEmployeeComponent extends Component {
         if(this.state.error.nameError !== ''){
             flag = true
         }
+        if(employee.name==''){
+            let checkedError = this.state.error
+            checkedError.nameError = 'Name cannot be Empty'
+            this.setState({error:checkedError})
+            flag = true
+        }
         if(employee.gender.length < 4){
             let checkedError = this.state.error
             checkedError.genderError = 'Gender must be selected'
             this.setState({error: checkedError})
             flag = true
         }
-        if(this.state.department.length == 0){
+        else{
+            let  checkedError = this.state.error
+             checkedError.genderError = ''
+             this.setState({error:checkedError})
+         }
+        if(employee.department.length == 0){
             console.log(this.state.department.length)
             let checkedError = this.state.error
-            checkedError.genderError = 'One department must be selected'
+            checkedError.departmentError = 'One department must be selected'
             this.setState({error: checkedError})
             flag = true
         }
-        if(this.state.note == ''){
+        else{
+            let checkedError = this.state.error
+             checkedError.departmentError = ''
+             this.setState({error:checkedError})
+ 
+         }
+        if(employee.note == ''){
             let checkedError = this.state.error
             checkedError.noteError = 'Notes cannot be blank'
             this.setState({error: checkedError})
             flag = true
         }
-        if(this.state.day == 'Day' || this.state.month == 'Month' || this.state.year == 'Year'){
+        else{
             let checkedError = this.state.error
-            checkedError.dateError = 'Date Cannot be Empty'
+             checkedError.noteError = ''
+             this.setState({error:checkedError})
+        }
+        console.log(this.state.day)
+        console.log(new Date(Date.parse(employee.startDate)))
+        if(this.state.day == '' || this.state.month == '' || this.state.year == ''){
+            let checkedError = this.state.error
+            checkedError.dateError = 'Please select a valid date'
             this.setState({error: checkedError})
             flag = true
         }
+        else{
+            let checkedError = this.state.error
+            checkedError.dateError = EmployeeService.checkDate(employee.startDate)
+            if(checkedError.dateError !== '')
+            flag =true
+            this.setState({error: checkedError})
+
+        }
+        console.log(flag)
         if(!flag){
             EmployeeService.addEmployee(employee).then(res =>{
                 this.props.history.push('/')
             })
         }
+        console.log(this.state.error)
     }
     reset = () => {
         this.setState({

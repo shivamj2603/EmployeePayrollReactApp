@@ -27,6 +27,13 @@ class UpdateEmployeeComponent extends Component {
                 deptName: 'Others',
                 isChecked: false
             }],
+            error:{
+                nameError:'',
+                genderError:'',
+                departmentError:'',
+                noteError:'',
+                dateError:''
+        },
             day: '',
             month: '',
             year: '',
@@ -70,7 +77,7 @@ class UpdateEmployeeComponent extends Component {
             // let months = date.getMonth
             // let years = date.getUTCFullYear
             var dat = new Date(employee.startDate)
-           let dtArray = ['January','Februay','March','April','May','June','July','August','September','October','November','December']
+           let dtArray =['January','Februay','March','April','May','June','July','August','September','October','November','December']
 
 
 
@@ -88,6 +95,22 @@ class UpdateEmployeeComponent extends Component {
         
     }
     changeNameHandler = (event) => {
+
+        const nameRegex = RegExp('^[A-Z]{1}[a-zA-Z\\s]{2,}$');
+        if (!nameRegex.test(event.target.value) && event.target.value !== '') {
+            let checkedError = this.state.error
+            checkedError.nameError = 'Name is Invalid'
+            console.log(checkedError)
+            this.setState({ error: checkedError});
+            console.log(this.state.error)
+        }
+        else {
+            let checkedError = this.state.error
+            checkedError.nameError = ''
+            console.log(checkedError)
+            this.setState({ error: checkedError});
+
+        }
         this.setState({ name: event.target.value });
 
     }
@@ -133,12 +156,81 @@ class UpdateEmployeeComponent extends Component {
             department: this.state.department.filter(dept=> dept.isChecked==true).map(dept=>dept.deptName),
             startDate: this.state.day + ' ' + this.state.month + ' ' + this.state.year
         };
-        console.log(employee);
-        console.log(this.state.id);
-        EmployeeService.updateEmployee(employee, this.state.id).then(res => {
-            console.log(res.data)
-            this.props.history.push('/');
-        })
+
+        let flag = false
+        console.log(JSON.stringify(employee));
+       
+        console.log(employee.name)
+        if(employee.name==''){
+            flag = true
+            let checkedError = this.state.error
+            checkedError.nameError = 'Name cannot be Empty'
+            this.setState({error:checkedError})
+        }
+        console.log(flag)
+        if(this.state.error.nameError !== ''){
+            flag = true
+        }
+        console.log(flag)
+        if(employee.gender.length < 4){
+            let checkedError = this.state.error
+            checkedError.genderError = 'Gender must be selected'
+            this.setState({error: checkedError})
+            flag = true
+        }
+        else{
+           let  checkedError = this.state.error
+            checkedError.genderError = ''
+            this.setState({error:checkedError})
+        }
+        if(employee.department.length == 0){
+            console.log(this.state.department.length)
+            let checkedError = this.state.error
+            checkedError.departmentError = 'One department must be selected'
+            this.setState({error: checkedError})
+            flag = true
+        }
+        else{
+           let checkedError = this.state.error
+            checkedError.departmentError = ''
+            this.setState({error:checkedError})
+
+        }
+        if(employee.note == ''){
+            let checkedError = this.state.error
+            checkedError.noteError = 'Notes cannot be blank'
+            this.setState({error: checkedError})
+            flag = true
+        }else{
+            let checkedError = this.state.error
+             checkedError.noteError = ''
+             this.setState({error:checkedError})
+        }
+        console.log(this.state.day)
+        if(this.state.day == '' || this.state.month == '' || this.state.year == ''){
+            let checkedError = this.state.error
+            checkedError.dateError = 'Please select a valid date'
+            this.setState({error: checkedError})
+            flag = true
+        }
+        else{
+            let checkedError = this.state.error
+            checkedError.dateError = EmployeeService.checkDate(employee.startDate)
+            setInterval(console.log("hello"),1000)
+            console.log(checkedError.dateError)
+            if(checkedError.dateError !== '') flag = true
+            this.setState({error: checkedError})
+
+        }
+        console.log(flag)
+        
+        if(!flag){
+            EmployeeService.updateEmployee(employee, this.state.id).then(res => {
+                console.log(res.data)
+                this.props.history.push('/');
+            })
+        }
+       
     }
     reset = () => {
         this.setState({
@@ -166,7 +258,7 @@ class UpdateEmployeeComponent extends Component {
                             <label class="label text" htmlFor="name">Name</label>
                             <input class="input" id="name" name="name"
                                 placeholder="Enter your name" required value={this.state.name} onChange={this.changeNameHandler} />
-                            <error-output class="text-error" htmlFor="name"></error-output>
+                            <error-output class="text-error" htmlFor="name">{this.state.error.nameError}</error-output>
                         </div>
                         <div class="row-content">
                             <label class="label text" htmlFor="gender">Gender</label>
@@ -175,6 +267,7 @@ class UpdateEmployeeComponent extends Component {
                                 <label class="text" htmlFor="male">Male</label>
                                 <input type="radio" id="female" name="gender" value="Female" checked={this.state.selectedGender == "Female"} onChange={this.changeGenderHandler} />
                                 <label class="text" htmlFor="female">Female</label>
+                                <error-output class="text-error" htmlFor="gender">{this.state.error.genderError}</error-output>
                             </div>
                         </div>
                         <div class="row-content">
@@ -199,6 +292,7 @@ class UpdateEmployeeComponent extends Component {
                                 <input class="checkbox" type="checkbox" id="others" name="department" value="Others" />
                                 <label class="text" htmlFor="others">Others</label>
                             </div> */}
+                             <error-output class="text-error" htmlFor="department">{this.state.error.departmentError}</error-output>
                         </div>
                         <div class="row-content">
                             <label class="label text" htmlFor="salary">Choose your salary:</label>
@@ -209,8 +303,8 @@ class UpdateEmployeeComponent extends Component {
                         <div class="row-content">
                             <label class="label text" htmlFor="startDate">StartDate</label>
                             <div id="date">
-                                <select id="day" name="Day" defaultValue={this.state.day} onChange={this.changeDayHandler}>
-                                    
+                                <select id="day" name="Day" onChange={this.changeDayHandler}>
+                                    <option selected>{this.state.day}</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
                                     <option value="3">3</option>
@@ -243,8 +337,8 @@ class UpdateEmployeeComponent extends Component {
                                     <option value="30">30</option>
                                     <option value="31">31</option>
                                 </select>
-                                <select id="month" name="Month" defaultValue={this.state.month} onChange={this.changeMonthHandler}>
-                                    
+                                <select id="month" name="Month" onChange={this.changeMonthHandler}>
+                                    <option selected>{this.state.month}</option>
                                     <option value="Jan">January</option>
                                     <option value="Feb">February</option>
                                     <option value="Mar">March</option>
@@ -258,8 +352,8 @@ class UpdateEmployeeComponent extends Component {
                                     <option value="Nov">November</option>
                                     <option value="Dec">December</option>
                                 </select>
-                                <select id="year" name="Year" defaultValue={this.state.year} onChange={this.changeYearHandler}>
-                                    
+                                <select id="year" name="Year" onChange={this.changeYearHandler}>
+                                    <option selected>{this.state.year}</option>
                                     <option value="2020">2020</option>
                                     <option value="2019">2019</option>
                                     <option value="2018">2018</option>
@@ -267,13 +361,15 @@ class UpdateEmployeeComponent extends Component {
                                     <option value="2016">2016</option>
                                     <option value="2015">2015</option>
                                 </select>
+
                             </div>
-                            <error-output class="date-error" htmlFor='startDate'></error-output>
+                            <error-output class="date-error" htmlFor='startDate'>{this.state.error.dateError}</error-output>
                         </div>
                         <div class="row-content">
                             <label class="label text" htmlFor="notes">Notes</label>
                             <textarea class="input" id="notes" name="notes"
                                 placeholder="" style={{ height: "100px" }} value={this.state.note} onChange={this.changeNoteHandler}></textarea>
+                         <error-output class="text-error" htmlFor="notes">{this.state.error.noteError}</error-output>
                         </div>
                         <div class="buttonParent">
                             <button class="resetButton button cancelButton" onClick={this.cancel.bind(this)}>Cancel</button>
