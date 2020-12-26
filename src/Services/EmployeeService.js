@@ -18,9 +18,13 @@ class EmployeeService{
     }
     checkDate(employeeDate){
         let error = ''
+
         let now = new Date();
+        console.log(now)
+        
          let startDate=new Date(Date.parse(employeeDate))
-                if(startDate > now) error ="Start Date cannot be future date";
+         console.log(startDate)
+                if(startDate.getFullYear() > now.getFullYear() && startDate.getMonth > startDate.getMonth() && startDate.getDate() > now.getDate()) error ="Start Date cannot be future date";
                 else {
                 let diff = Math.abs(now.getTime() - startDate.getTime());
                 if( diff/(1000*60*60*24) > 30) error = "Startdate is beyond 30 days";
