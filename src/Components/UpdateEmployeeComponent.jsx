@@ -10,30 +10,23 @@ class UpdateEmployeeComponent extends Component {
             salary: '400000',
             startDate: '',
             note: '',
-            department: [
-                {
-                    isChecked: false,
-                    departmentName: 'HR'
-                }
-                , {
-                    isChecked: false,
-                    departmentName: 'Finance'
-                },
-
-                {
-                    isChecked: false,
-                    departmentName: 'Engineer'
-                },
-                {
-                    isChecked: false,
-                    departmentName: 'Sales'
-                },
-                {
-                    isChecked: false,
-                    departmentName: 'Others'
-                }
-
-            ],
+            department: [{
+                deptName: 'HR',
+                isChecked: false
+            },
+            {
+                deptName: 'Sales',
+                isChecked: false
+            }, {
+                deptName: 'Engineer',
+                isChecked: false
+            }, {
+                deptName: 'Finance',
+                isChecked: false
+            }, {
+                deptName: 'Others',
+                isChecked: false
+            }],
             day: '',
             month: '',
             year: '',
@@ -48,32 +41,51 @@ class UpdateEmployeeComponent extends Component {
         this.changeDayHandler = this.changeDayHandler.bind(this);
         this.changeMonthHandler = this.changeMonthHandler.bind(this);
         this.changeYearHandler = this.changeYearHandler.bind(this);
-
         this.update = this.update.bind(this);
     }
     componentDidMount() {
         EmployeeService.getEmployeeById(this.state.id).then((res) => {
             let employee = res.data.data;
-           let bdepartment = employee.department.map(
-               (dept) => {
-                   let obj ={};
-                obj =   {
-                    isChecked: false,
-                    departmentName: dept
-                }
-                return obj;
+            console.log(employee.department)
+            employee.department.forEach(dept=>{
+                console.log(dept)
+                let index = this.state.department.findIndex(dep => dep.deptName == dept)
+                console.log(index)
+        let checkedDepartment = [...this.state.department]
+        console.log(checkedDepartment[index])
+        checkedDepartment[index] = { ...checkedDepartment[index], isChecked: !checkedDepartment[index].isChecked }
+            
+                
+
+
+                
+                this.setState({ department: checkedDepartment },console.log(checkedDepartment))
             }
-           )
-            console.log(employee);
+            )
+            console.log(this.state.department)
+            // let dateStr = JSON.parse(employee.startDate);
+            // console.log(dateStr)
+            // let date = new Date(dateStr)
+            // let days = date.getDay
+            // let months = date.getMonth
+            // let years = date.getUTCFullYear
+            var dat = new Date(employee.startDate)
+           let dtArray = ['January','Februay','March','April','May','June','July','August','September','October','November','December']
+
+
+
             this.setState({
                 name: employee.name,
                 salary: employee.salary,
-                // department: [...employee.department, bdepartment],
                 note: employee.note,
+                day: dat.getDay(),
+                month: dtArray[dat.getMonth()],
+                year: dat.getFullYear(),
                 startDate: employee.startDate,
                 selectedGender: employee.gender
             })
         })
+        
     }
     changeNameHandler = (event) => {
         this.setState({ name: event.target.value });
@@ -98,7 +110,16 @@ class UpdateEmployeeComponent extends Component {
         this.setState({ year: event.target.value });
     }
     changeDepartmentHandler = (event) => {
-        this.state.department.push(event.target.value);
+        // let index = this.state.department.findIndex(dept => dept.deptName == event.target.name)
+        
+        let index = this.state.department.findIndex(dept => dept.deptName == event.target.name)
+        let checkedDepartment = [...this.state.department]
+        checkedDepartment[index] = { ...checkedDepartment[index], isChecked: !checkedDepartment[index].isChecked }
+        console.log(checkedDepartment)
+
+        // checkedDepartment[index] = { ...checkedDepartment[index], isChecked: !checkedDepartment[index].isChecked }
+        this.setState({ department: checkedDepartment }
+        )
     }
 
 
@@ -109,11 +130,13 @@ class UpdateEmployeeComponent extends Component {
             salary: this.state.salary,
             gender: this.state.selectedGender,
             note: this.state.note,
-            department: this.state.department,
+            department: this.state.department.filter(dept=> dept.isChecked==true).map(dept=>dept.deptName),
             startDate: this.state.day + ' ' + this.state.month + ' ' + this.state.year
         };
         console.log(employee);
+        console.log(this.state.id);
         EmployeeService.updateEmployee(employee, this.state.id).then(res => {
+            console.log(res.data)
             this.props.history.push('/');
         })
     }
@@ -134,16 +157,6 @@ class UpdateEmployeeComponent extends Component {
         this.props.history.push('/');
     }
     render() {
-        function Department(props){
-            
-           let  departments = props.department.map((dep) =>{
-                <input type="checkbox" name={dep.name} checked={dep.checked}/>
-            }
-            )
-            return (
-                <div>{departments}</div>
-              );
-        }
         return (
             <div>
                 <div class="form-content" id="formId">
@@ -166,7 +179,14 @@ class UpdateEmployeeComponent extends Component {
                         </div>
                         <div class="row-content">
                             <label class="label text" htmlFor="department">Department</label>
-                            <Department department={this.state.department}/>
+                            {
+                                this.state.department.map(dept =>
+                                    <div>
+                                        <input class="checkbox" type="checkbox" name={dept.deptName} checked={dept.isChecked} value={dept.deptName} onChange={this.changeDepartmentHandler} />
+                                        <label class="text" htmlFor={dept.deptName}>{dept.deptName}</label>
+                                    </div>
+                                )
+                            }
                             {/* <div onChange={this.changeDepartmentHandler}>
                                 <input class="checkbox" type="checkbox" id="hr" name="department" value="HR"/>
                                 <label class="text" htmlFor="hr">HR</label>
@@ -183,14 +203,14 @@ class UpdateEmployeeComponent extends Component {
                         <div class="row-content">
                             <label class="label text" htmlFor="salary">Choose your salary:</label>
                             <input class="slider" type="range" min="300000" max="500000" step="100"
-                                name="salary" id="salary" defaultValue="400000" onChange={this.changeSalaryHandler} />
+                                name="salary" id="salary" defaultValue={this.state.salary} onChange={this.changeSalaryHandler} />
                             <output class="salary-output text" for="salary">{this.state.salary}</output>
                         </div>
                         <div class="row-content">
                             <label class="label text" htmlFor="startDate">StartDate</label>
                             <div id="date">
-                                <select id="day" name="Day" onChange={this.changeDayHandler}>
-                                    <option selected>Day</option>
+                                <select id="day" name="Day" defaultValue={this.state.day} onChange={this.changeDayHandler}>
+                                    
                                     <option value="1">1</option>
                                     <option value="2">2</option>
                                     <option value="3">3</option>
@@ -223,23 +243,23 @@ class UpdateEmployeeComponent extends Component {
                                     <option value="30">30</option>
                                     <option value="31">31</option>
                                 </select>
-                                <select id="month" name="Month" onChange={this.changeMonthHandler}>
-                                    <option selected>Month</option>
+                                <select id="month" name="Month" defaultValue={this.state.month} onChange={this.changeMonthHandler}>
+                                    
                                     <option value="Jan">January</option>
                                     <option value="Feb">February</option>
-                                    <option value="March">March</option>
-                                    <option value="April">April</option>
+                                    <option value="Mar">March</option>
+                                    <option value="Apr">April</option>
                                     <option value="May">May</option>
-                                    <option value="June">June</option>
-                                    <option value="July">July</option>
+                                    <option value="Jun">June</option>
+                                    <option value="Jul">July</option>
                                     <option value="Aug">August</option>
-                                    <option value="Sept">September</option>
+                                    <option value="Sep">September</option>
                                     <option value="Oct">October</option>
                                     <option value="Nov">November</option>
                                     <option value="Dec">December</option>
                                 </select>
-                                <select id="year" name="Year" onChange={this.changeYearHandler}>
-                                    <option selected>Year</option>
+                                <select id="year" name="Year" defaultValue={this.state.year} onChange={this.changeYearHandler}>
+                                    
                                     <option value="2020">2020</option>
                                     <option value="2019">2019</option>
                                     <option value="2018">2018</option>

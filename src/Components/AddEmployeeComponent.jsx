@@ -36,6 +36,13 @@ class AddEmployeeComponent extends Component {
                 departmentError:'',
                 noteError:'',
                 dateError:''
+        },
+        initialerror:{
+            nameError:'',
+                genderError:'',
+                departmentError:'',
+                noteError:'',
+                dateError:''
         }
             
             
@@ -55,7 +62,23 @@ class AddEmployeeComponent extends Component {
 
     }
     changeNameHandler = (event) => {
+        const nameRegex = RegExp('^[A-Z]{1}[a-zA-Z\\s]{2,}$');
+        if (!nameRegex.test(event.target.value) && event.target.value !== '') {
+            let checkedError = this.state.error
+            checkedError.nameError = 'Name is Invalid'
+            console.log(checkedError)
+            this.setState({ error: checkedError});
+            console.log(this.state.error)
+        }
+        else{
+            let checkedError = this.state.error
+            checkedError.nameError = ''
+            console.log(checkedError)
+            this.setState({ error: checkedError});
+
+        }
         this.setState({ name: event.target.value });
+       
     }
     changeSalaryHandler = (event) => {
         this.setState({ salary: event.target.value });
@@ -133,16 +156,41 @@ class AddEmployeeComponent extends Component {
             department: this.state.department.filter(dept=> dept.isChecked==true).map(dept=>dept.deptName),
             startDate: this.state.day + ' ' + this.state.month + ' ' + this.state.year
         };
+        let flag = false
         console.log(JSON.stringify(employee));
+        if(this.state.error.nameError !== ''){
+            flag = true
+        }
         if(employee.gender.length < 4){
-            this.setState({...this.state.error, genderError:'Gender must be selected'})
+            let checkedError = this.state.error
+            checkedError.genderError = 'Gender must be selected'
+            this.setState({error: checkedError})
+            flag = true
         }
         if(this.state.department.length == 0){
-
+            console.log(this.state.department.length)
+            let checkedError = this.state.error
+            checkedError.genderError = 'One department must be selected'
+            this.setState({error: checkedError})
+            flag = true
         }
-        EmployeeService.addEmployee(employee).then(res => {
-            this.props.history.push('/');
-        })
+        if(this.state.note == ''){
+            let checkedError = this.state.error
+            checkedError.noteError = 'Notes cannot be blank'
+            this.setState({error: checkedError})
+            flag = true
+        }
+        if(this.state.day == 'Day' || this.state.month == 'Month' || this.state.year == 'Year'){
+            let checkedError = this.state.error
+            checkedError.dateError = 'Date Cannot be Empty'
+            this.setState({error: checkedError})
+            flag = true
+        }
+        if(!flag){
+            EmployeeService.addEmployee(employee).then(res =>{
+                this.props.history.push('/')
+            })
+        }
     }
     reset = () => {
         this.setState({
@@ -170,7 +218,7 @@ class AddEmployeeComponent extends Component {
                             <label class="label text" htmlFor="name">Name</label>
                             <input class="input" id="name" name="name"
                                 placeholder="Enter your name" required onChange={this.changeNameHandler}/>
-                            <error-output class="text-error" htmlFor="name"></error-output>
+                            <error-output class="text-error" htmlFor="name">{this.state.error.nameError}</error-output>
                         </div>
                         <div class="row-content">
                             <label class="label text" htmlFor="gender">Gender</label>
@@ -179,6 +227,7 @@ class AddEmployeeComponent extends Component {
                                 <label class="text" htmlFor="male">Male</label>
                                 <input type="radio" id="female" name="gender" value="Female" />
                                 <label class="text" htmlFor="female">Female</label>
+                                <error-output class="text-error" htmlFor="gender">{this.state.error.genderError}</error-output>
                             </div>
                         </div>
                         <div class="row-content">
@@ -191,6 +240,7 @@ class AddEmployeeComponent extends Component {
                                 </div>
                                         )
                                 }
+                                 <error-output class="text-error" htmlFor="department">{this.state.error.departmentError}</error-output>
                                 
                                 {/* <input class="checkbox" type="checkbox" id="sales" name="department" value="Sales" onChange={this.changeSalesHandler}/>
                                 <label class="text" htmlFor="sales">Sales</label>
@@ -249,13 +299,13 @@ class AddEmployeeComponent extends Component {
                                     <option selected>Month</option>
                                     <option value="Jan">January</option>
                                     <option value="Feb">February</option>
-                                    <option value="March">March</option>
-                                    <option value="April">April</option>
+                                    <option value="Mar">March</option>
+                                    <option value="Apr">April</option>
                                     <option value="May">May</option>
-                                    <option value="June">June</option>
-                                    <option value="July">July</option>
+                                    <option value="Jun">June</option>
+                                    <option value="Jul">July</option>
                                     <option value="Aug">August</option>
-                                    <option value="Sept">September</option>
+                                    <option value="Sep">September</option>
                                     <option value="Oct">October</option>
                                     <option value="Nov">November</option>
                                     <option value="Dec">December</option>
@@ -270,12 +320,13 @@ class AddEmployeeComponent extends Component {
                                     <option value="2015">2015</option>
                                 </select>
                             </div>
-                            <error-output class="date-error" htmlFor='startDate'></error-output>
+                            <error-output class="date-error" htmlFor='startDate'>{this.state.error.dateError}</error-output>
                         </div>
                         <div class="row-content">
                             <label class="label text" htmlFor="notes">Notes</label>
                             <textarea class="input" id="notes" style={{height:"100px"}} name="notes"
                                 placeholder="" onChange = {this.changeNoteHandler}></textarea>
+                                <error-output class="date-error" htmlFor='notes'>{this.state.error.noteError}</error-output>
                         </div>
                         <div class="buttonParent">
                             <button class="resetButton button cancelButton" onClick={this.cancel.bind(this)}>Cancel</button>

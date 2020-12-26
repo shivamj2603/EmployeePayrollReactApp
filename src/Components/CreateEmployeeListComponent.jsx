@@ -42,7 +42,7 @@ class CreateEmployeeListComponent extends Component {
             const numbers = props.numbers;
             const listItems = numbers.map((number) =>
               <div class="dept-label" >
-                {number}
+                {number }
               </div>
             );
             return (
